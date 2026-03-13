@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 pub struct PipelineConfig {
     pub llm: LlmProviderConfig,
     pub voicevox: VoiceVoxConfig,
+    #[serde(default)]
+    pub timeout_secs: Option<u64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

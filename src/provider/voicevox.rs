@@ -11,9 +11,9 @@ pub(crate) struct VoiceVoxClient {
 }
 
 impl VoiceVoxClient {
-    pub(crate) fn new(base_url: String, speaker: u32) -> Self {
+    pub(crate) fn new(http: Client, base_url: String, speaker: u32) -> Self {
         Self {
-            http: Client::new(),
+            http,
             base_url,
             speaker,
         }

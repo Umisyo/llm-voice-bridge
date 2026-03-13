@@ -1,3 +1,7 @@
+use std::time::Duration;
+
+use reqwest::Client;
+
 use crate::config::{LlmProviderConfig, PipelineConfig};
 use crate::error::Error;
 use crate::normalize::normalize_for_tts;
@@ -7,6 +11,8 @@ use crate::provider::voicevox::VoiceVoxClient;
 use crate::provider::{LlmClient, TtsClient};
 use crate::types::{SynthesisRequest, SynthesisResult};
 
+const DEFAULT_TIMEOUT_SECS: u64 = 30;
+
 pub struct Pipeline {
     llm: Box<dyn LlmClient>,
     tts: Box<dyn TtsClient>,
@@ -14,6 +20,11 @@ pub struct Pipeline {
 
 impl Pipeline {
     pub fn new(config: PipelineConfig) -> Result<Self, Error> {
+        let timeout = config.timeout_secs.unwrap_or(DEFAULT_TIMEOUT_SECS);
+        let http_client = Client::builder()
+            .timeout(Duration::from_secs(timeout))
+            .build()?;
+
         let llm: Box<dyn LlmClient> = match config.llm {
             LlmProviderConfig::OpenAi {
                 api_key,
@@ -25,7 +36,7 @@ impl Pipeline {
                         message: "OpenAI API key is empty".into(),
                     });
                 }
-                Box::new(OpenAiClient::new(api_key, model, base_url))
+                Box::new(OpenAiClient::new(http_client.clone(), api_key, model, base_url))
             }
             LlmProviderConfig::Anthropic {
                 api_key,
@@ -37,7 +48,7 @@ impl Pipeline {
                         message: "Anthropic API key is empty".into(),
                     });
                 }
-                Box::new(AnthropicClient::new(api_key, model, max_tokens))
+                Box::new(AnthropicClient::new(http_client.clone(), api_key, model, max_tokens))
             }
         };
 
@@ -48,6 +59,7 @@ impl Pipeline {
         }
 
         let tts = Box::new(VoiceVoxClient::new(
+            http_client,
             config.voicevox.base_url,
             config.voicevox.speaker,
         ));
