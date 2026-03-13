@@ -127,13 +127,12 @@ impl Pipeline {
         );
 
         let start = Instant::now();
-        let audio_bytes =
-            with_retry(self.max_retries, || self.tts.synthesize(&normalized_text))
-                .await
-                .map_err(|e| {
-                    error!(error = %e, "TTS synthesis failed");
-                    e
-                })?;
+        let audio_bytes = with_retry(self.max_retries, || self.tts.synthesize(&normalized_text))
+            .await
+            .map_err(|e| {
+                error!(error = %e, "TTS synthesis failed");
+                e
+            })?;
         let tts_elapsed = start.elapsed();
         debug!(
             audio_bytes = audio_bytes.len(),

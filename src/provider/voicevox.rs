@@ -42,7 +42,10 @@ impl TtsClient for VoiceVoxClient {
         let query_status = query_response.status();
         if !query_status.is_success() {
             let body = query_response.text().await.unwrap_or_default();
-            warn!(status = query_status.as_u16(), "VOICEVOX audio_query failed");
+            warn!(
+                status = query_status.as_u16(),
+                "VOICEVOX audio_query failed"
+            );
             return Err(Error::VoiceVoxApiError {
                 status: query_status.as_u16(),
                 body,
