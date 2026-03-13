@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-03-13
+
+### Changed
+
+- Cargo.toml にcrates.io公開用メタデータ追加（repository, keywords, categories, readme, rust-version）
+- クレートレベルのドキュメント追加
+- CHANGELOG.md 追加
+- リリース自動化ワークフロー追加
+
 ## [0.1.0] - 2026-03-13
 
 ### Added
@@ -23,5 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 構造化エラー型 (`Error` enum)
 - HTTP タイムアウト設定（`timeout_secs`）
 
-[Unreleased]: https://github.com/Umisyo/llm-voice-bridge/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Umisyo/llm-voice-bridge/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/Umisyo/llm-voice-bridge/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Umisyo/llm-voice-bridge/releases/tag/v0.1.0
