@@ -109,3 +109,54 @@ print("hello")
     assert!(result.contains("重要"));
     assert!(result.contains("手順1。"));
 }
+
+#[test]
+fn test_ordered_list_conversion() {
+    let input = "1. りんご\n2. みかん\n3. ぶどう";
+    let result = normalize_for_tts(input);
+    assert!(result.contains("りんご。"));
+    assert!(result.contains("みかん。"));
+    assert!(result.contains("ぶどう。"));
+    assert!(!result.contains("1."));
+}
+
+#[test]
+fn test_markdown_link_conversion() {
+    let input = "詳しくは[公式ドキュメント](https://example.com/docs)を参照してください。";
+    let result = normalize_for_tts(input);
+    assert!(result.contains("公式ドキュメント"));
+    assert!(!result.contains("["));
+    assert!(!result.contains("]("));
+    assert!(!result.contains("example.com"));
+}
+
+#[test]
+fn test_table_strip() {
+    let input = "| 項目 | 値 |\n|---|---|\n| CPU | 90% |\n| メモリ | 70% |";
+    let result = normalize_for_tts(input);
+    assert!(!result.contains("|"));
+    assert!(!result.contains("---"));
+    assert!(result.contains("項目、値。"));
+    assert!(result.contains("CPU、90%。"));
+    assert!(result.contains("メモリ、70%。"));
+}
+
+#[test]
+fn test_combined_new_features() {
+    let input = r#"## 手順
+
+1. [ダウンロードページ](https://example.com)を開く
+2. インストールする
+
+| OS | 対応 |
+|---|---|
+| Windows | はい |
+| Mac | はい |"#;
+
+    let result = normalize_for_tts(input);
+    assert!(result.contains("手順"));
+    assert!(result.contains("ダウンロードページを開く。"));
+    assert!(result.contains("インストールする。"));
+    assert!(!result.contains("---"));
+    assert!(result.contains("Windows、はい。"));
+}
