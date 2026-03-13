@@ -1,8 +1,12 @@
+use std::collections::VecDeque;
 use std::time::{Duration, Instant};
 
+use futures::stream::BoxStream;
+use futures::StreamExt;
 use reqwest::Client;
 use tracing::{debug, error, info, instrument};
 
+use crate::chunker::StreamChunker;
 use crate::config::{LlmProviderConfig, PipelineConfig};
 use crate::error::Error;
 use crate::normalize::normalize_for_tts;
@@ -11,7 +15,7 @@ use crate::provider::openai::OpenAiClient;
 use crate::provider::voicevox::VoiceVoxClient;
 use crate::provider::{LlmClient, TtsClient};
 use crate::retry::with_retry;
-use crate::types::{SynthesisRequest, SynthesisResult};
+use crate::types::{StreamChunk, SynthesisRequest, SynthesisResult};
 
 const DEFAULT_TIMEOUT_SECS: u64 = 30;
 
@@ -150,4 +154,105 @@ impl Pipeline {
             audio_bytes,
         })
     }
+
+    pub async fn run_stream(
+        &self,
+        request: SynthesisRequest,
+    ) -> Result<BoxStream<'_, Result<StreamChunk, Error>>, Error> {
+        let llm_stream = self
+            .llm
+            .chat_stream(&request.input, request.system_prompt.as_deref())
+            .await?;
+
+        let tts = &self.tts;
+
+        let stream = futures::stream::unfold(
+            StreamState::Streaming {
+                llm_stream,
+                chunker: StreamChunker::new(),
+                pending_sentences: VecDeque::new(),
+            },
+            move |state| async move {
+                match state {
+                    StreamState::Streaming {
+                        mut llm_stream,
+                        mut chunker,
+                        mut pending_sentences,
+                    } => {
+                        // First, drain any pending sentences in order
+                        if let Some(sentence) = pending_sentences.pop_front() {
+                            let result = synthesize_sentence(tts.as_ref(), &sentence).await;
+                            return Some((
+                                result,
+                                StreamState::Streaming {
+                                    llm_stream,
+                                    chunker,
+                                    pending_sentences,
+                                },
+                            ));
+                        }
+
+                        // Pull from LLM stream
+                        loop {
+                            match llm_stream.next().await {
+                                Some(Ok(delta)) => {
+                                    let sentences = chunker.push(&delta);
+                                    if !sentences.is_empty() {
+                                        let mut iter = sentences.into_iter();
+                                        let first = iter.next().unwrap();
+                                        let pending: VecDeque<String> = iter.collect();
+                                        let result =
+                                            synthesize_sentence(tts.as_ref(), &first).await;
+                                        return Some((
+                                            result,
+                                            StreamState::Streaming {
+                                                llm_stream,
+                                                chunker,
+                                                pending_sentences: pending,
+                                            },
+                                        ));
+                                    }
+                                    // No complete sentence yet, continue pulling
+                                }
+                                Some(Err(e)) => {
+                                    return Some((Err(e), StreamState::Done));
+                                }
+                                None => {
+                                    // Stream ended, flush remaining
+                                    if let Some(remaining) = chunker.flush() {
+                                        let result =
+                                            synthesize_sentence(tts.as_ref(), &remaining).await;
+                                        return Some((result, StreamState::Done));
+                                    }
+                                    return None;
+                                }
+                            }
+                        }
+                    }
+                    StreamState::Done => None,
+                }
+            },
+        );
+
+        Ok(Box::pin(stream))
+    }
+}
+
+enum StreamState<'a> {
+    Streaming {
+        llm_stream: BoxStream<'a, Result<String, Error>>,
+        chunker: StreamChunker,
+        pending_sentences: VecDeque<String>,
+    },
+    Done,
+}
+
+async fn synthesize_sentence(tts: &dyn TtsClient, sentence: &str) -> Result<StreamChunk, Error> {
+    let normalized = normalize_for_tts(sentence);
+    let audio_bytes = tts.synthesize(&normalized).await?;
+    Ok(StreamChunk {
+        text: sentence.to_string(),
+        normalized_text: normalized,
+        audio_bytes,
+    })
 }
