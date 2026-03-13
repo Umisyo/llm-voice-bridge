@@ -13,6 +13,7 @@ use crate::provider::anthropic::AnthropicClient;
 use crate::provider::openai::OpenAiClient;
 use crate::provider::voicevox::VoiceVoxClient;
 use crate::provider::{LlmClient, TtsClient};
+use crate::retry::with_retry;
 use crate::types::{StreamChunk, SynthesisRequest, SynthesisResult};
 
 const DEFAULT_TIMEOUT_SECS: u64 = 30;
@@ -20,11 +21,13 @@ const DEFAULT_TIMEOUT_SECS: u64 = 30;
 pub struct Pipeline {
     llm: Box<dyn LlmClient>,
     tts: Box<dyn TtsClient>,
+    max_retries: u32,
 }
 
 impl Pipeline {
     pub fn new(config: PipelineConfig) -> Result<Self, Error> {
         let timeout = config.timeout_secs.unwrap_or(DEFAULT_TIMEOUT_SECS);
+        let max_retries = config.max_retries.unwrap_or(0);
         let http_client = Client::builder()
             .timeout(Duration::from_secs(timeout))
             .build()?;
@@ -80,18 +83,24 @@ impl Pipeline {
             config.voicevox.speaker,
         ));
 
-        Ok(Self { llm, tts })
+        Ok(Self {
+            llm,
+            tts,
+            max_retries,
+        })
     }
 
     pub async fn run(&self, request: SynthesisRequest) -> Result<SynthesisResult, Error> {
-        let llm_response = self
-            .llm
-            .chat(&request.input, request.system_prompt.as_deref())
-            .await?;
+        let llm_response = with_retry(self.max_retries, || {
+            self.llm
+                .chat(&request.input, request.system_prompt.as_deref())
+        })
+        .await?;
 
         let normalized_text = normalize_for_tts(&llm_response);
 
-        let audio_bytes = self.tts.synthesize(&normalized_text).await?;
+        let audio_bytes =
+            with_retry(self.max_retries, || self.tts.synthesize(&normalized_text)).await?;
 
         Ok(SynthesisResult {
             text: llm_response,
