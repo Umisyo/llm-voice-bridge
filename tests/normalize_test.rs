@@ -27,10 +27,7 @@ fn test_heading_removal() {
 
 #[test]
 fn test_bold_removal() {
-    assert_eq!(
-        normalize_for_tts("これは**太字**です"),
-        "これは太字です"
-    );
+    assert_eq!(normalize_for_tts("これは**太字**です"), "これは太字です");
 }
 
 #[test]

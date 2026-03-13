@@ -18,10 +18,7 @@ pub enum Error {
     LlmEmptyResponse,
 
     #[error("VOICEVOX engine unreachable at {url}: {source}")]
-    VoiceVoxUnreachable {
-        url: String,
-        source: reqwest::Error,
-    },
+    VoiceVoxUnreachable { url: String, source: reqwest::Error },
 
     #[error("VOICEVOX API error (HTTP {status}): {body}")]
     VoiceVoxApiError { status: u16, body: String },
