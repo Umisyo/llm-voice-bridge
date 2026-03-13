@@ -94,6 +94,7 @@ async fn test_openai_streaming_pipeline() {
         voicevox: voicevox_config(&tts_server.uri()),
         timeout_secs: None,
         max_retries: None,
+        system_prompt: None,
     })
     .unwrap();
 
@@ -150,6 +151,7 @@ async fn test_anthropic_streaming_pipeline() {
         voicevox: voicevox_config(&tts_server.uri()),
         timeout_secs: None,
         max_retries: None,
+        system_prompt: None,
     })
     .unwrap();
 
@@ -195,6 +197,7 @@ async fn test_streaming_auth_error() {
         voicevox: voicevox_config(&tts_server.uri()),
         timeout_secs: None,
         max_retries: None,
+        system_prompt: None,
     })
     .unwrap();
 
@@ -237,6 +240,7 @@ async fn test_streaming_incremental_chunks() {
         voicevox: voicevox_config(&tts_server.uri()),
         timeout_secs: None,
         max_retries: None,
+        system_prompt: None,
     })
     .unwrap();
 
@@ -288,6 +292,7 @@ async fn test_streaming_multi_sentence_in_single_delta() {
         voicevox: voicevox_config(&tts_server.uri()),
         timeout_secs: None,
         max_retries: None,
+        system_prompt: None,
     })
     .unwrap();
 
