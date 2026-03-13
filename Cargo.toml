@@ -2,8 +2,14 @@
 name = "llm-voice-bridge"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.75"
 license = "MIT"
 description = "Lightweight pipeline: text → LLM → VOICEVOX → WAV audio"
+readme = "README.md"
+repository = "https://github.com/Umisyo/llm-voice-bridge"
+homepage = "https://github.com/Umisyo/llm-voice-bridge"
+keywords = ["tts", "voicevox", "llm", "openai", "anthropic"]
+categories = ["multimedia::audio", "api-bindings"]
 
 [dependencies]
 reqwest = { version = "0.12", features = ["json"] }
