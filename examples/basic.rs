@@ -16,6 +16,7 @@ async fn main() -> Result<(), llm_voice_bridge::Error> {
         },
         timeout_secs: None,
         max_retries: None,
+        system_prompt: None,
     })?;
 
     let result = pipeline

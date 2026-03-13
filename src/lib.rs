@@ -21,6 +21,7 @@
 //!     },
 //!     timeout_secs: None,
 //!     max_retries: None,
+//!     system_prompt: None,
 //! };
 //!
 //! let pipeline = Pipeline::new(config)?;
