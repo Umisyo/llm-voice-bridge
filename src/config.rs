@@ -8,6 +8,8 @@ pub struct PipelineConfig {
     #[serde(default)]
     pub timeout_secs: Option<u64>,
     #[serde(default)]
+    pub max_retries: Option<u32>,
+    #[serde(default)]
     pub system_prompt: Option<String>,
 }
 
