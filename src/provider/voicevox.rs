@@ -23,19 +23,18 @@ impl VoiceVoxClient {
 #[async_trait]
 impl TtsClient for VoiceVoxClient {
     async fn synthesize(&self, text: &str) -> Result<Vec<u8>, Error> {
-        let audio_query_url = format!(
-            "{}/audio_query?text={}&speaker={}",
-            self.base_url,
-            urlencoding(text),
-            self.speaker
-        );
+        let audio_query_url = format!("{}/audio_query", self.base_url);
 
-        let query_response = self.http.post(&audio_query_url).send().await.map_err(|e| {
-            Error::VoiceVoxUnreachable {
+        let query_response = self
+            .http
+            .post(&audio_query_url)
+            .query(&[("text", text), ("speaker", &self.speaker.to_string())])
+            .send()
+            .await
+            .map_err(|e| Error::VoiceVoxUnreachable {
                 url: self.base_url.clone(),
                 source: e,
-            }
-        })?;
+            })?;
 
         let query_status = query_response.status();
         if !query_status.is_success() {
@@ -48,11 +47,12 @@ impl TtsClient for VoiceVoxClient {
 
         let audio_query: serde_json::Value = query_response.json().await?;
 
-        let synthesis_url = format!("{}/synthesis?speaker={}", self.base_url, self.speaker);
+        let synthesis_url = format!("{}/synthesis", self.base_url);
 
         let synth_response = self
             .http
             .post(&synthesis_url)
+            .query(&[("speaker", &self.speaker.to_string())])
             .json(&audio_query)
             .send()
             .await
@@ -73,19 +73,4 @@ impl TtsClient for VoiceVoxClient {
         let audio_bytes = synth_response.bytes().await?.to_vec();
         Ok(audio_bytes)
     }
-}
-
-fn urlencoding(s: &str) -> String {
-    let mut result = String::new();
-    for byte in s.bytes() {
-        match byte {
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
-                result.push(byte as char);
-            }
-            _ => {
-                result.push_str(&format!("%{:02X}", byte));
-            }
-        }
-    }
-    result
 }
