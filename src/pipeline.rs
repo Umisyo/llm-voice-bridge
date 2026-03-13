@@ -31,13 +31,14 @@ impl Pipeline {
                 api_key,
                 model,
                 max_tokens,
+                base_url,
             } => {
                 if api_key.is_empty() {
                     return Err(Error::InvalidConfig {
                         message: "Anthropic API key is empty".into(),
                     });
                 }
-                Box::new(AnthropicClient::new(api_key, model, max_tokens))
+                Box::new(AnthropicClient::new(api_key, model, max_tokens, base_url))
             }
         };
 
@@ -58,10 +59,7 @@ impl Pipeline {
     pub async fn run(&self, request: SynthesisRequest) -> Result<SynthesisResult, Error> {
         let llm_response = self
             .llm
-            .chat(
-                &request.input,
-                request.system_prompt.as_deref(),
-            )
+            .chat(&request.input, request.system_prompt.as_deref())
             .await?;
 
         let normalized_text = normalize_for_tts(&llm_response);
