@@ -20,6 +20,7 @@ pub enum LlmProviderConfig {
         api_key: String,
         model: String,
         max_tokens: Option<u32>,
+        base_url: Option<String>,
     },
 }
 

@@ -31,13 +31,14 @@ impl Pipeline {
                 api_key,
                 model,
                 max_tokens,
+                base_url,
             } => {
                 if api_key.is_empty() {
                     return Err(Error::InvalidConfig {
                         message: "Anthropic API key is empty".into(),
                     });
                 }
-                Box::new(AnthropicClient::new(api_key, model, max_tokens))
+                Box::new(AnthropicClient::new(api_key, model, max_tokens, base_url))
             }
         };
 
