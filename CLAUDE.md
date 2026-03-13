@@ -18,7 +18,10 @@ llm-voice-bridge — テキスト入力 → LLM(OpenAI/Anthropic) → テキス�
 cargo build              # ライブラリビルド
 cargo test               # 全テスト実行 (ユニット + 統合)
 cargo build --examples   # サンプルビルド
+cargo fmt -- --check     # フォーマットチェック
 ```
+
+**push前に必ず `cargo fmt -- --check` を実行し、差分があれば `cargo fmt` で修正してからpushすること。** CIで `cargo fmt -- --check` が走るため、フォーマット未適用だとCIが落ちる。
 
 ## ディレクトリ構成
 
