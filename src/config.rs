@@ -9,6 +9,8 @@ pub struct PipelineConfig {
     pub timeout_secs: Option<u64>,
     #[serde(default)]
     pub max_retries: Option<u32>,
+    #[serde(default)]
+    pub system_prompt: Option<String>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]

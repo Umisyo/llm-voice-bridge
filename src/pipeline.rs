@@ -18,6 +18,7 @@ pub struct Pipeline {
     llm: Box<dyn LlmClient>,
     tts: Box<dyn TtsClient>,
     max_retries: u32,
+    system_prompt: Option<String>,
 }
 
 impl Pipeline {
@@ -83,13 +84,18 @@ impl Pipeline {
             llm,
             tts,
             max_retries,
+            system_prompt: config.system_prompt,
         })
     }
 
     pub async fn run(&self, request: SynthesisRequest) -> Result<SynthesisResult, Error> {
+        let system_prompt = request
+            .system_prompt
+            .as_deref()
+            .or(self.system_prompt.as_deref());
+
         let llm_response = with_retry(self.max_retries, || {
-            self.llm
-                .chat(&request.input, request.system_prompt.as_deref())
+            self.llm.chat(&request.input, system_prompt)
         })
         .await?;
 
