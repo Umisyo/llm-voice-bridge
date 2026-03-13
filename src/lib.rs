@@ -33,6 +33,7 @@
 //! # }
 //! ```
 
+mod chunker;
 mod config;
 mod error;
 mod normalize;
@@ -44,4 +45,4 @@ pub use config::{LlmProviderConfig, PipelineConfig, VoiceVoxConfig};
 pub use error::Error;
 pub use normalize::normalize_for_tts;
 pub use pipeline::Pipeline;
-pub use types::{SynthesisRequest, SynthesisResult};
+pub use types::{StreamChunk, SynthesisRequest, SynthesisResult};
