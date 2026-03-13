@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use futures::stream::{BoxStream, StreamExt};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use tracing::{debug, warn};
 
 use crate::error::Error;
 use crate::provider::sse::parse_sse_stream;
@@ -98,9 +99,13 @@ impl LlmClient for AnthropicClient {
             stream: None,
         };
 
+        let url = format!("{}/v1/messages", self.base_url);
+
+        debug!(url = %url, model = %self.model, "sending Anthropic request");
+
         let response = self
             .http
-            .post(format!("{}/v1/messages", self.base_url))
+            .post(&url)
             .header("x-api-key", &self.api_key)
             .header("anthropic-version", "2023-06-01")
             .header("content-type", "application/json")
@@ -111,11 +116,13 @@ impl LlmClient for AnthropicClient {
         let status = response.status();
 
         if let Some(err) = Self::check_error_status(status) {
+            warn!(status = status.as_u16(), "Anthropic error status detected");
             return Err(err);
         }
 
         if !status.is_success() {
             let body = response.text().await.unwrap_or_default();
+            warn!(status = status.as_u16(), "Anthropic API error");
             return Err(Error::LlmApiError {
                 status: status.as_u16(),
                 body,

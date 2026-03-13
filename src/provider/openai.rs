@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use futures::stream::{BoxStream, StreamExt};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use tracing::{debug, warn};
 
 use crate::error::Error;
 use crate::provider::sse::parse_sse_stream;
@@ -110,6 +111,8 @@ impl LlmClient for OpenAiClient {
 
         let url = format!("{}/v1/chat/completions", self.base_url);
 
+        debug!(url = %url, model = %self.model, "sending OpenAI request");
+
         let response = self
             .http
             .post(&url)
@@ -121,11 +124,13 @@ impl LlmClient for OpenAiClient {
         let status = response.status();
 
         if let Some(err) = Self::check_error_status(status) {
+            warn!(status = status.as_u16(), "OpenAI error status detected");
             return Err(err);
         }
 
         if !status.is_success() {
             let body = response.text().await.unwrap_or_default();
+            warn!(status = status.as_u16(), "OpenAI API error");
             return Err(Error::LlmApiError {
                 status: status.as_u16(),
                 body,
