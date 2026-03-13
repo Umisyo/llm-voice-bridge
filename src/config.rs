@@ -39,12 +39,16 @@ impl fmt::Debug for LlmProviderConfig {
                 .field("base_url", base_url)
                 .finish(),
             LlmProviderConfig::Anthropic {
-                model, max_tokens, ..
+                model,
+                max_tokens,
+                base_url,
+                ..
             } => f
                 .debug_struct("Anthropic")
                 .field("api_key", &"***")
                 .field("model", model)
                 .field("max_tokens", max_tokens)
+                .field("base_url", base_url)
                 .finish(),
         }
     }
@@ -84,6 +88,7 @@ mod tests {
             api_key: "ant-secret-key-67890".to_string(),
             model: "claude-sonnet-4-20250514".to_string(),
             max_tokens: Some(1024),
+            base_url: None,
         };
         let debug_output = format!("{:?}", config);
         assert!(
