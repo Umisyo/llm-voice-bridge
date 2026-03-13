@@ -46,8 +46,8 @@ fn remove_inline_code(text: &str) -> String {
     let mut result = String::new();
     let mut in_code = false;
 
-    let mut chars = text.chars().peekable();
-    while let Some(ch) = chars.next() {
+    let chars = text.chars().peekable();
+    for ch in chars {
         if ch == '`' {
             in_code = !in_code;
         } else if !in_code {
