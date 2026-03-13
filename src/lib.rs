@@ -20,6 +20,8 @@
 //!         speaker: 1,
 //!     },
 //!     timeout_secs: None,
+//!     max_retries: None,
+//!     system_prompt: None,
 //! };
 //!
 //! let pipeline = Pipeline::new(config)?;
@@ -38,6 +40,7 @@ mod error;
 mod normalize;
 mod pipeline;
 mod provider;
+mod retry;
 mod types;
 
 pub use config::{LlmProviderConfig, PipelineConfig, VoiceVoxConfig};
