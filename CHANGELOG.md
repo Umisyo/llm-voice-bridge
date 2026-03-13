@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-03-13
+
+### Added
+
+- ストリーミング合成モード `Pipeline::run_stream()` — LLM応答をチャンク単位で逐次音声合成
+- 一時的なエラー（5xx, 429）に対する自動リトライ機構（指数バックオフ）
+- `PipelineConfig` にデフォルトシステムプロンプト設定 (`system_prompt`) を追加
+- `tracing` クレートによるロギング/トレーシング対応
+
+### Changed
+
+- README を現状の機能に合わせて最新化
+- インストール手順を crates.io 経由に更新
+
 ## [0.1.2] - 2026-03-13
 
 ### Fixed
@@ -38,7 +52,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 構造化エラー型 (`Error` enum)
 - HTTP タイムアウト設定（`timeout_secs`）
 
-[Unreleased]: https://github.com/Umisyo/llm-voice-bridge/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/Umisyo/llm-voice-bridge/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Umisyo/llm-voice-bridge/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/Umisyo/llm-voice-bridge/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/Umisyo/llm-voice-bridge/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Umisyo/llm-voice-bridge/releases/tag/v0.1.0
