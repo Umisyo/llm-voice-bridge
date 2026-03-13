@@ -32,3 +32,16 @@ pub enum Error {
     #[error("IO error: {0}")]
     IoError(#[from] std::io::Error),
 }
+
+impl Error {
+    pub fn is_retryable(&self) -> bool {
+        match self {
+            Error::LlmRateLimited => true,
+            Error::LlmApiError { status, .. } => matches!(status, 500 | 502 | 503 | 504),
+            Error::VoiceVoxApiError { status, .. } => matches!(status, 500 | 502 | 503 | 504),
+            Error::HttpError(_) => true,
+            Error::VoiceVoxUnreachable { .. } => true,
+            _ => false,
+        }
+    }
+}

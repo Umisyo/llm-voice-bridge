@@ -60,6 +60,7 @@ async fn test_openai_pipeline() {
         },
         voicevox: voicevox_config(&tts_server.uri()),
         timeout_secs: None,
+        max_retries: None,
     })
     .unwrap();
 
@@ -104,6 +105,7 @@ async fn test_anthropic_pipeline() {
         },
         voicevox: voicevox_config(&tts_server.uri()),
         timeout_secs: None,
+        max_retries: None,
     })
     .unwrap();
 
@@ -140,6 +142,7 @@ async fn test_llm_auth_error() {
         },
         voicevox: voicevox_config(&tts_server.uri()),
         timeout_secs: None,
+        max_retries: None,
     })
     .unwrap();
 
@@ -174,6 +177,7 @@ async fn test_llm_rate_limited() {
         },
         voicevox: voicevox_config(&tts_server.uri()),
         timeout_secs: None,
+        max_retries: None,
     })
     .unwrap();
 
@@ -214,6 +218,7 @@ async fn test_llm_empty_response() {
         },
         voicevox: voicevox_config(&tts_server.uri()),
         timeout_secs: None,
+        max_retries: None,
     })
     .unwrap();
 
@@ -258,6 +263,7 @@ async fn test_voicevox_api_error() {
         },
         voicevox: voicevox_config(&tts_server.uri()),
         timeout_secs: None,
+        max_retries: None,
     })
     .unwrap();
 
@@ -287,6 +293,7 @@ async fn test_invalid_config_empty_api_key() {
             speaker: 1,
         },
         timeout_secs: None,
+        max_retries: None,
     });
 
     assert!(matches!(result, Err(Error::InvalidConfig { .. })));
@@ -305,6 +312,7 @@ async fn test_invalid_config_empty_base_url() {
             speaker: 1,
         },
         timeout_secs: None,
+        max_retries: None,
     });
 
     assert!(matches!(result, Err(Error::InvalidConfig { .. })));
@@ -337,6 +345,7 @@ async fn test_full_pipeline_with_markdown_normalization() {
         },
         voicevox: voicevox_config(&tts_server.uri()),
         timeout_secs: None,
+        max_retries: None,
     })
     .unwrap();
 
@@ -354,4 +363,92 @@ async fn test_full_pipeline_with_markdown_normalization() {
 
     // Audio bytes returned
     assert!(!result.audio_bytes.is_empty());
+}
+
+#[tokio::test]
+async fn test_retry_on_server_error() {
+    let llm_server = MockServer::start().await;
+    let tts_server = MockServer::start().await;
+
+    // First two requests return 500, third succeeds
+    Mock::given(method("POST"))
+        .and(path("/v1/chat/completions"))
+        .respond_with(ResponseTemplate::new(500).set_body_string("Internal Server Error"))
+        .up_to_n_times(2)
+        .expect(2)
+        .mount(&llm_server)
+        .await;
+
+    Mock::given(method("POST"))
+        .and(path("/v1/chat/completions"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+            "choices": [{
+                "message": {
+                    "content": "リトライ成功"
+                }
+            }]
+        })))
+        .expect(1)
+        .mount(&llm_server)
+        .await;
+
+    setup_voicevox_mocks(&tts_server).await;
+
+    let pipeline = Pipeline::new(PipelineConfig {
+        llm: LlmProviderConfig::OpenAi {
+            api_key: "test-key".into(),
+            model: "gpt-4o".into(),
+            base_url: Some(llm_server.uri()),
+        },
+        voicevox: voicevox_config(&tts_server.uri()),
+        timeout_secs: None,
+        max_retries: Some(3),
+    })
+    .unwrap();
+
+    let result = pipeline
+        .run(SynthesisRequest {
+            input: "test".into(),
+            system_prompt: None,
+        })
+        .await
+        .unwrap();
+
+    assert_eq!(result.text, "リトライ成功");
+}
+
+#[tokio::test]
+async fn test_no_retry_on_auth_error() {
+    let llm_server = MockServer::start().await;
+    let tts_server = MockServer::start().await;
+
+    Mock::given(method("POST"))
+        .and(path("/v1/chat/completions"))
+        .respond_with(ResponseTemplate::new(401).set_body_string("Unauthorized"))
+        .expect(1)
+        .mount(&llm_server)
+        .await;
+
+    setup_voicevox_mocks(&tts_server).await;
+
+    let pipeline = Pipeline::new(PipelineConfig {
+        llm: LlmProviderConfig::OpenAi {
+            api_key: "bad-key".into(),
+            model: "gpt-4o".into(),
+            base_url: Some(llm_server.uri()),
+        },
+        voicevox: voicevox_config(&tts_server.uri()),
+        timeout_secs: None,
+        max_retries: Some(3),
+    })
+    .unwrap();
+
+    let result = pipeline
+        .run(SynthesisRequest {
+            input: "test".into(),
+            system_prompt: None,
+        })
+        .await;
+
+    assert!(matches!(result, Err(Error::LlmAuthError)));
 }
