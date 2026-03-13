@@ -13,7 +13,12 @@ pub(crate) struct OpenAiClient {
 }
 
 impl OpenAiClient {
-    pub(crate) fn new(http: Client, api_key: String, model: String, base_url: Option<String>) -> Self {
+    pub(crate) fn new(
+        http: Client,
+        api_key: String,
+        model: String,
+        base_url: Option<String>,
+    ) -> Self {
         Self {
             http,
             api_key,

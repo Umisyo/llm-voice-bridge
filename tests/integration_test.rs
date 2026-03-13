@@ -26,8 +26,7 @@ async fn setup_voicevox_mocks(server: &MockServer) {
         .and(path("/synthesis"))
         .and(query_param("speaker", "1"))
         .respond_with(
-            ResponseTemplate::new(200)
-                .set_body_bytes(b"RIFF\x00\x00\x00\x00WAVEfmt " as &[u8]),
+            ResponseTemplate::new(200).set_body_bytes(b"RIFF\x00\x00\x00\x00WAVEfmt " as &[u8]),
         )
         .mount(server)
         .await;
@@ -96,15 +95,11 @@ async fn test_anthropic_pipeline() {
 
     setup_voicevox_mocks(&tts_server).await;
 
-    // Anthropic client uses hardcoded URL, so we need a different approach for testing.
-    // For integration test, we test OpenAI with mock since Anthropic URL is hardcoded.
-    // In real usage, the Anthropic client sends to api.anthropic.com directly.
-    // Here we verify the pipeline structure works with OpenAI mock instead.
-
     let pipeline = Pipeline::new(PipelineConfig {
-        llm: LlmProviderConfig::OpenAi {
+        llm: LlmProviderConfig::Anthropic {
             api_key: "test-key".into(),
-            model: "gpt-4o".into(),
+            model: "claude-sonnet-4-20250514".into(),
+            max_tokens: Some(1024),
             base_url: Some(llm_server.uri()),
         },
         voicevox: voicevox_config(&tts_server.uri()),
@@ -117,11 +112,11 @@ async fn test_anthropic_pipeline() {
             input: "助けて".into(),
             system_prompt: Some("丁寧に答えて".into()),
         })
-        .await;
+        .await
+        .unwrap();
 
-    // This will fail since the mock is set up for anthropic path, not openai
-    // Let's set up an openai-compatible mock for this test
-    assert!(result.is_ok() || result.is_err());
+    assert_eq!(result.text, "はい、お手伝いします。");
+    assert!(!result.audio_bytes.is_empty());
 }
 
 #[tokio::test]

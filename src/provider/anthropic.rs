@@ -10,15 +10,23 @@ pub(crate) struct AnthropicClient {
     api_key: String,
     model: String,
     max_tokens: u32,
+    base_url: String,
 }
 
 impl AnthropicClient {
-    pub(crate) fn new(http: Client, api_key: String, model: String, max_tokens: Option<u32>) -> Self {
+    pub(crate) fn new(
+        http: Client,
+        api_key: String,
+        model: String,
+        max_tokens: Option<u32>,
+        base_url: Option<String>,
+    ) -> Self {
         Self {
             http,
             api_key,
             model,
             max_tokens: max_tokens.unwrap_or(1024),
+            base_url: base_url.unwrap_or_else(|| "https://api.anthropic.com".to_string()),
         }
     }
 }
@@ -65,7 +73,7 @@ impl LlmClient for AnthropicClient {
 
         let response = self
             .http
-            .post("https://api.anthropic.com/v1/messages")
+            .post(format!("{}/v1/messages", self.base_url))
             .header("x-api-key", &self.api_key)
             .header("anthropic-version", "2023-06-01")
             .header("content-type", "application/json")

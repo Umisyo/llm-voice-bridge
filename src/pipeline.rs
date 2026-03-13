@@ -36,19 +36,31 @@ impl Pipeline {
                         message: "OpenAI API key is empty".into(),
                     });
                 }
-                Box::new(OpenAiClient::new(http_client.clone(), api_key, model, base_url))
+                Box::new(OpenAiClient::new(
+                    http_client.clone(),
+                    api_key,
+                    model,
+                    base_url,
+                ))
             }
             LlmProviderConfig::Anthropic {
                 api_key,
                 model,
                 max_tokens,
+                base_url,
             } => {
                 if api_key.is_empty() {
                     return Err(Error::InvalidConfig {
                         message: "Anthropic API key is empty".into(),
                     });
                 }
-                Box::new(AnthropicClient::new(http_client.clone(), api_key, model, max_tokens))
+                Box::new(AnthropicClient::new(
+                    http_client.clone(),
+                    api_key,
+                    model,
+                    max_tokens,
+                    base_url,
+                ))
             }
         };
 
@@ -70,10 +82,7 @@ impl Pipeline {
     pub async fn run(&self, request: SynthesisRequest) -> Result<SynthesisResult, Error> {
         let llm_response = self
             .llm
-            .chat(
-                &request.input,
-                request.system_prompt.as_deref(),
-            )
+            .chat(&request.input, request.system_prompt.as_deref())
             .await?;
 
         let normalized_text = normalize_for_tts(&llm_response);
