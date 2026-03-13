@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use reqwest::Client;
+use tracing::{debug, warn};
 
 use crate::error::Error;
 use crate::provider::TtsClient;
@@ -25,6 +26,8 @@ impl TtsClient for VoiceVoxClient {
     async fn synthesize(&self, text: &str) -> Result<Vec<u8>, Error> {
         let audio_query_url = format!("{}/audio_query", self.base_url);
 
+        debug!(url = %audio_query_url, speaker = self.speaker, "sending VOICEVOX audio_query");
+
         let query_response = self
             .http
             .post(&audio_query_url)
@@ -39,6 +42,7 @@ impl TtsClient for VoiceVoxClient {
         let query_status = query_response.status();
         if !query_status.is_success() {
             let body = query_response.text().await.unwrap_or_default();
+            warn!(status = query_status.as_u16(), "VOICEVOX audio_query failed");
             return Err(Error::VoiceVoxApiError {
                 status: query_status.as_u16(),
                 body,
@@ -48,6 +52,8 @@ impl TtsClient for VoiceVoxClient {
         let audio_query: serde_json::Value = query_response.json().await?;
 
         let synthesis_url = format!("{}/synthesis", self.base_url);
+
+        debug!(url = %synthesis_url, "sending VOICEVOX synthesis");
 
         let synth_response = self
             .http
@@ -64,6 +70,7 @@ impl TtsClient for VoiceVoxClient {
         let synth_status = synth_response.status();
         if !synth_status.is_success() {
             let body = synth_response.text().await.unwrap_or_default();
+            warn!(status = synth_status.as_u16(), "VOICEVOX synthesis failed");
             return Err(Error::VoiceVoxApiError {
                 status: synth_status.as_u16(),
                 body,

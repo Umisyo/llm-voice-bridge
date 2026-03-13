@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use tracing::{debug, warn};
 
 use crate::error::Error;
 use crate::provider::LlmClient;
@@ -79,6 +80,8 @@ impl LlmClient for OpenAiClient {
 
         let url = format!("{}/v1/chat/completions", self.base_url);
 
+        debug!(url = %url, model = %self.model, "sending OpenAI request");
+
         let response = self
             .http
             .post(&url)
@@ -90,15 +93,18 @@ impl LlmClient for OpenAiClient {
         let status = response.status();
 
         if status == reqwest::StatusCode::UNAUTHORIZED {
+            warn!("OpenAI authentication failed");
             return Err(Error::LlmAuthError);
         }
 
         if status == reqwest::StatusCode::TOO_MANY_REQUESTS {
+            warn!("OpenAI rate limited");
             return Err(Error::LlmRateLimited);
         }
 
         if !status.is_success() {
             let body = response.text().await.unwrap_or_default();
+            warn!(status = status.as_u16(), "OpenAI API error");
             return Err(Error::LlmApiError {
                 status: status.as_u16(),
                 body,

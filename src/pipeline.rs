@@ -1,6 +1,7 @@
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use reqwest::Client;
+use tracing::{debug, error, info, instrument};
 
 use crate::config::{LlmProviderConfig, PipelineConfig};
 use crate::error::Error;
@@ -36,6 +37,7 @@ impl Pipeline {
                         message: "OpenAI API key is empty".into(),
                     });
                 }
+                debug!(provider = "openai", model = %model, "LLM provider configured");
                 Box::new(OpenAiClient::new(
                     http_client.clone(),
                     api_key,
@@ -54,6 +56,7 @@ impl Pipeline {
                         message: "Anthropic API key is empty".into(),
                     });
                 }
+                debug!(provider = "anthropic", model = %model, "LLM provider configured");
                 Box::new(AnthropicClient::new(
                     http_client.clone(),
                     api_key,
@@ -70,6 +73,8 @@ impl Pipeline {
             });
         }
 
+        debug!(base_url = %config.voicevox.base_url, speaker = config.voicevox.speaker, "VOICEVOX configured");
+
         let tts = Box::new(VoiceVoxClient::new(
             http_client,
             config.voicevox.base_url,
@@ -79,15 +84,50 @@ impl Pipeline {
         Ok(Self { llm, tts })
     }
 
+    #[instrument(skip(self, request), fields(input_len = request.input.len()))]
     pub async fn run(&self, request: SynthesisRequest) -> Result<SynthesisResult, Error> {
+        info!("pipeline started");
+
+        let start = Instant::now();
         let llm_response = self
             .llm
             .chat(&request.input, request.system_prompt.as_deref())
-            .await?;
+            .await
+            .map_err(|e| {
+                error!(error = %e, "LLM request failed");
+                e
+            })?;
+        let llm_elapsed = start.elapsed();
+        debug!(
+            response_len = llm_response.len(),
+            elapsed_ms = llm_elapsed.as_millis() as u64,
+            "LLM response received"
+        );
 
+        let before_len = llm_response.len();
         let normalized_text = normalize_for_tts(&llm_response);
+        debug!(
+            before_len,
+            after_len = normalized_text.len(),
+            "text normalized"
+        );
 
-        let audio_bytes = self.tts.synthesize(&normalized_text).await?;
+        let start = Instant::now();
+        let audio_bytes = self.tts.synthesize(&normalized_text).await.map_err(|e| {
+            error!(error = %e, "TTS synthesis failed");
+            e
+        })?;
+        let tts_elapsed = start.elapsed();
+        debug!(
+            audio_bytes = audio_bytes.len(),
+            elapsed_ms = tts_elapsed.as_millis() as u64,
+            "TTS synthesis completed"
+        );
+
+        info!(
+            total_elapsed_ms = (llm_elapsed + tts_elapsed).as_millis() as u64,
+            "pipeline completed"
+        );
 
         Ok(SynthesisResult {
             text: llm_response,

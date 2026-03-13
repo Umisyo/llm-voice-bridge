@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use tracing::{debug, warn};
 
 use crate::error::Error;
 use crate::provider::LlmClient;
@@ -71,9 +72,13 @@ impl LlmClient for AnthropicClient {
             }],
         };
 
+        let url = format!("{}/v1/messages", self.base_url);
+
+        debug!(url = %url, model = %self.model, "sending Anthropic request");
+
         let response = self
             .http
-            .post(format!("{}/v1/messages", self.base_url))
+            .post(&url)
             .header("x-api-key", &self.api_key)
             .header("anthropic-version", "2023-06-01")
             .header("content-type", "application/json")
@@ -84,15 +89,18 @@ impl LlmClient for AnthropicClient {
         let status = response.status();
 
         if status == reqwest::StatusCode::UNAUTHORIZED {
+            warn!("Anthropic authentication failed");
             return Err(Error::LlmAuthError);
         }
 
         if status == reqwest::StatusCode::TOO_MANY_REQUESTS {
+            warn!("Anthropic rate limited");
             return Err(Error::LlmRateLimited);
         }
 
         if !status.is_success() {
             let body = response.text().await.unwrap_or_default();
+            warn!(status = status.as_u16(), "Anthropic API error");
             return Err(Error::LlmApiError {
                 status: status.as_u16(),
                 body,
