@@ -11,11 +11,15 @@
 
 ## インストール
 
-`Cargo.toml` に以下を追加してください。
+```bash
+cargo add llm-voice-bridge
+```
+
+または `Cargo.toml` に直接追加：
 
 ```toml
 [dependencies]
-llm-voice-bridge = { git = "https://github.com/Umisyo/llm-voice-bridge.git" }
+llm-voice-bridge = "0.1"
 ```
 
 ## 使い方
