@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-03-13
+
+### Fixed
+
+- `cargo publish` 時の Cargo.lock dirty エラーを修正（git管理から除外）
+
 ## [0.1.1] - 2026-03-13
 
 ### Changed
@@ -32,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 構造化エラー型 (`Error` enum)
 - HTTP タイムアウト設定（`timeout_secs`）
 
-[Unreleased]: https://github.com/Umisyo/llm-voice-bridge/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/Umisyo/llm-voice-bridge/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/Umisyo/llm-voice-bridge/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/Umisyo/llm-voice-bridge/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Umisyo/llm-voice-bridge/releases/tag/v0.1.0
