@@ -14,7 +14,12 @@ pub(crate) struct AnthropicClient {
 }
 
 impl AnthropicClient {
-    pub(crate) fn new(api_key: String, model: String, max_tokens: Option<u32>, base_url: Option<String>) -> Self {
+    pub(crate) fn new(
+        api_key: String,
+        model: String,
+        max_tokens: Option<u32>,
+        base_url: Option<String>,
+    ) -> Self {
         Self {
             http: Client::new(),
             api_key,
