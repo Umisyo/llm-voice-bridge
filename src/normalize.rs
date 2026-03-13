@@ -150,13 +150,11 @@ fn convert_bullets(line: &str) -> String {
             break;
         }
     }
-    if has_digit {
-        if chars.next() == Some('.') && chars.next() == Some(' ') {
-            let content: String = chars.collect();
-            let content = content.trim();
-            if !content.is_empty() {
-                return format!("{}。", content.trim_end_matches('。'));
-            }
+    if has_digit && chars.next() == Some('.') && chars.next() == Some(' ') {
+        let content: String = chars.collect();
+        let content = content.trim();
+        if !content.is_empty() {
+            return format!("{}。", content.trim_end_matches('。'));
         }
     }
     line.to_string()
@@ -198,13 +196,19 @@ fn strip_tables(line: &str) -> String {
         return line.to_string();
     }
     // Check if separator row (contains only |, -, :, spaces)
-    let is_separator = trimmed.chars().all(|c| c == '|' || c == '-' || c == ':' || c == ' ');
+    let is_separator = trimmed
+        .chars()
+        .all(|c| c == '|' || c == '-' || c == ':' || c == ' ');
     if is_separator {
         return String::new();
     }
     // Data row: extract cells
     let inner = &trimmed[1..trimmed.len() - 1]; // strip outer pipes
-    let cells: Vec<&str> = inner.split('|').map(|s| s.trim()).filter(|s| !s.is_empty()).collect();
+    let cells: Vec<&str> = inner
+        .split('|')
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .collect();
     if cells.is_empty() {
         return String::new();
     }
@@ -340,7 +344,10 @@ mod tests {
     #[test]
     fn test_strip_table_data_row() {
         assert_eq!(normalize_for_tts("| a | b |"), "a、b。");
-        assert_eq!(normalize_for_tts("| 名前 | 年齢 | 職業 |"), "名前、年齢、職業。");
+        assert_eq!(
+            normalize_for_tts("| 名前 | 年齢 | 職業 |"),
+            "名前、年齢、職業。"
+        );
     }
 
     #[test]
