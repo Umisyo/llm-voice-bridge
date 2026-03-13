@@ -26,8 +26,7 @@ async fn setup_voicevox_mocks(server: &MockServer) {
         .and(path("/synthesis"))
         .and(query_param("speaker", "1"))
         .respond_with(
-            ResponseTemplate::new(200)
-                .set_body_bytes(b"RIFF\x00\x00\x00\x00WAVEfmt " as &[u8]),
+            ResponseTemplate::new(200).set_body_bytes(b"RIFF\x00\x00\x00\x00WAVEfmt " as &[u8]),
         )
         .mount(server)
         .await;

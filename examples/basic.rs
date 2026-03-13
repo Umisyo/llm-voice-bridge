@@ -25,7 +25,10 @@ async fn main() -> Result<(), llm_voice_bridge::Error> {
 
     std::fs::write("output.wav", &result.audio_bytes)?;
     println!("LLM response: {}", result.text);
-    println!("Audio written to output.wav ({} bytes)", result.audio_bytes.len());
+    println!(
+        "Audio written to output.wav ({} bytes)",
+        result.audio_bytes.len()
+    );
 
     Ok(())
 }

@@ -30,15 +30,12 @@ impl TtsClient for VoiceVoxClient {
             self.speaker
         );
 
-        let query_response = self
-            .http
-            .post(&audio_query_url)
-            .send()
-            .await
-            .map_err(|e| Error::VoiceVoxUnreachable {
+        let query_response = self.http.post(&audio_query_url).send().await.map_err(|e| {
+            Error::VoiceVoxUnreachable {
                 url: self.base_url.clone(),
                 source: e,
-            })?;
+            }
+        })?;
 
         let query_status = query_response.status();
         if !query_status.is_success() {

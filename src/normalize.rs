@@ -204,7 +204,10 @@ mod tests {
 
     #[test]
     fn test_remove_bold() {
-        assert_eq!(normalize_for_tts("This is **bold** text"), "This is bold text");
+        assert_eq!(
+            normalize_for_tts("This is **bold** text"),
+            "This is bold text"
+        );
     }
 
     #[test]
@@ -232,7 +235,8 @@ mod tests {
 
     #[test]
     fn test_combined() {
-        let input = "# タイトル\n\n**太字**のテキスト\n\n- 項目1\n- 項目2\n\n```\ncode\n```\n\n終わり";
+        let input =
+            "# タイトル\n\n**太字**のテキスト\n\n- 項目1\n- 項目2\n\n```\ncode\n```\n\n終わり";
         let result = normalize_for_tts(input);
         assert!(result.contains("タイトル"));
         assert!(!result.contains("#"));
