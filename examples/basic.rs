@@ -14,6 +14,7 @@ async fn main() -> Result<(), llm_voice_bridge::Error> {
             base_url: "http://127.0.0.1:50021".into(),
             speaker: 1,
         },
+        timeout_secs: None,
     })?;
 
     let result = pipeline

@@ -13,9 +13,14 @@ pub(crate) struct OpenAiClient {
 }
 
 impl OpenAiClient {
-    pub(crate) fn new(api_key: String, model: String, base_url: Option<String>) -> Self {
+    pub(crate) fn new(
+        http: Client,
+        api_key: String,
+        model: String,
+        base_url: Option<String>,
+    ) -> Self {
         Self {
-            http: Client::new(),
+            http,
             api_key,
             model,
             base_url: base_url.unwrap_or_else(|| "https://api.openai.com".into()),

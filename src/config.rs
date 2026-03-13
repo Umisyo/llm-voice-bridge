@@ -5,6 +5,8 @@ use std::fmt;
 pub struct PipelineConfig {
     pub llm: LlmProviderConfig,
     pub voicevox: VoiceVoxConfig,
+    #[serde(default)]
+    pub timeout_secs: Option<u64>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]

@@ -59,6 +59,7 @@ async fn test_openai_pipeline() {
             base_url: Some(llm_server.uri()),
         },
         voicevox: voicevox_config(&tts_server.uri()),
+        timeout_secs: None,
     })
     .unwrap();
 
@@ -102,6 +103,7 @@ async fn test_anthropic_pipeline() {
             base_url: Some(llm_server.uri()),
         },
         voicevox: voicevox_config(&tts_server.uri()),
+        timeout_secs: None,
     })
     .unwrap();
 
@@ -137,6 +139,7 @@ async fn test_llm_auth_error() {
             base_url: Some(llm_server.uri()),
         },
         voicevox: voicevox_config(&tts_server.uri()),
+        timeout_secs: None,
     })
     .unwrap();
 
@@ -170,6 +173,7 @@ async fn test_llm_rate_limited() {
             base_url: Some(llm_server.uri()),
         },
         voicevox: voicevox_config(&tts_server.uri()),
+        timeout_secs: None,
     })
     .unwrap();
 
@@ -209,6 +213,7 @@ async fn test_llm_empty_response() {
             base_url: Some(llm_server.uri()),
         },
         voicevox: voicevox_config(&tts_server.uri()),
+        timeout_secs: None,
     })
     .unwrap();
 
@@ -252,6 +257,7 @@ async fn test_voicevox_api_error() {
             base_url: Some(llm_server.uri()),
         },
         voicevox: voicevox_config(&tts_server.uri()),
+        timeout_secs: None,
     })
     .unwrap();
 
@@ -280,6 +286,7 @@ async fn test_invalid_config_empty_api_key() {
             base_url: "http://localhost:50021".into(),
             speaker: 1,
         },
+        timeout_secs: None,
     });
 
     assert!(matches!(result, Err(Error::InvalidConfig { .. })));
@@ -297,6 +304,7 @@ async fn test_invalid_config_empty_base_url() {
             base_url: "".into(),
             speaker: 1,
         },
+        timeout_secs: None,
     });
 
     assert!(matches!(result, Err(Error::InvalidConfig { .. })));
@@ -328,6 +336,7 @@ async fn test_full_pipeline_with_markdown_normalization() {
             base_url: Some(llm_server.uri()),
         },
         voicevox: voicevox_config(&tts_server.uri()),
+        timeout_secs: None,
     })
     .unwrap();
 
