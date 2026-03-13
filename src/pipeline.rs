@@ -16,6 +16,7 @@ const DEFAULT_TIMEOUT_SECS: u64 = 30;
 pub struct Pipeline {
     llm: Box<dyn LlmClient>,
     tts: Box<dyn TtsClient>,
+    system_prompt: Option<String>,
 }
 
 impl Pipeline {
@@ -76,14 +77,20 @@ impl Pipeline {
             config.voicevox.speaker,
         ));
 
-        Ok(Self { llm, tts })
+        Ok(Self {
+            llm,
+            tts,
+            system_prompt: config.system_prompt,
+        })
     }
 
     pub async fn run(&self, request: SynthesisRequest) -> Result<SynthesisResult, Error> {
-        let llm_response = self
-            .llm
-            .chat(&request.input, request.system_prompt.as_deref())
-            .await?;
+        let system_prompt = request
+            .system_prompt
+            .as_deref()
+            .or(self.system_prompt.as_deref());
+
+        let llm_response = self.llm.chat(&request.input, system_prompt).await?;
 
         let normalized_text = normalize_for_tts(&llm_response);
 

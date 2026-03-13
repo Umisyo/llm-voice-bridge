@@ -20,6 +20,7 @@
 //!         speaker: 1,
 //!     },
 //!     timeout_secs: None,
+//!     system_prompt: None,
 //! };
 //!
 //! let pipeline = Pipeline::new(config)?;

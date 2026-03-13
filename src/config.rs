@@ -7,6 +7,8 @@ pub struct PipelineConfig {
     pub voicevox: VoiceVoxConfig,
     #[serde(default)]
     pub timeout_secs: Option<u64>,
+    #[serde(default)]
+    pub system_prompt: Option<String>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
