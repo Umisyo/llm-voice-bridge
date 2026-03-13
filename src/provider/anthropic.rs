@@ -86,11 +86,7 @@ struct StreamDelta {
 
 #[async_trait]
 impl LlmClient for AnthropicClient {
-    async fn chat(
-        &self,
-        user_message: &str,
-        system_prompt: Option<&str>,
-    ) -> Result<String, Error> {
+    async fn chat(&self, user_message: &str, system_prompt: Option<&str>) -> Result<String, Error> {
         let request = MessagesRequest {
             model: self.model.clone(),
             max_tokens: self.max_tokens,

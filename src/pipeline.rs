@@ -134,8 +134,7 @@ impl Pipeline {
                     } => {
                         // First, drain any pending sentences in order
                         if let Some(sentence) = pending_sentences.pop_front() {
-                            let result =
-                                synthesize_sentence(tts.as_ref(), &sentence).await;
+                            let result = synthesize_sentence(tts.as_ref(), &sentence).await;
                             return Some((
                                 result,
                                 StreamState::Streaming {
@@ -169,10 +168,7 @@ impl Pipeline {
                                     // No complete sentence yet, continue pulling
                                 }
                                 Some(Err(e)) => {
-                                    return Some((
-                                        Err(e),
-                                        StreamState::Done,
-                                    ));
+                                    return Some((Err(e), StreamState::Done));
                                 }
                                 None => {
                                     // Stream ended, flush remaining
@@ -204,10 +200,7 @@ enum StreamState<'a> {
     Done,
 }
 
-async fn synthesize_sentence(
-    tts: &dyn TtsClient,
-    sentence: &str,
-) -> Result<StreamChunk, Error> {
+async fn synthesize_sentence(tts: &dyn TtsClient, sentence: &str) -> Result<StreamChunk, Error> {
     let normalized = normalize_for_tts(sentence);
     let audio_bytes = tts.synthesize(&normalized).await?;
     Ok(StreamChunk {

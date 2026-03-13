@@ -29,11 +29,7 @@ impl OpenAiClient {
         }
     }
 
-    fn build_messages(
-        &self,
-        user_message: &str,
-        system_prompt: Option<&str>,
-    ) -> Vec<Message> {
+    fn build_messages(&self, user_message: &str, system_prompt: Option<&str>) -> Vec<Message> {
         let mut messages = Vec::new();
         if let Some(system) = system_prompt {
             messages.push(Message {
@@ -105,11 +101,7 @@ struct StreamChunkResponse {
 
 #[async_trait]
 impl LlmClient for OpenAiClient {
-    async fn chat(
-        &self,
-        user_message: &str,
-        system_prompt: Option<&str>,
-    ) -> Result<String, Error> {
+    async fn chat(&self, user_message: &str, system_prompt: Option<&str>) -> Result<String, Error> {
         let request = ChatRequest {
             model: self.model.clone(),
             messages: self.build_messages(user_message, system_prompt),

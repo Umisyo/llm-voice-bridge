@@ -70,11 +70,7 @@ async fn test_openai_streaming_pipeline() {
     let llm_server = MockServer::start().await;
     let tts_server = MockServer::start().await;
 
-    let sse_body = build_openai_sse(&[
-        "こんにちは。",
-        "元気ですか？",
-        "今日もいい天気ですね。",
-    ]);
+    let sse_body = build_openai_sse(&["こんにちは。", "元気ですか？", "今日もいい天気ですね。"]);
 
     Mock::given(method("POST"))
         .and(path("/v1/chat/completions"))
@@ -129,11 +125,7 @@ async fn test_anthropic_streaming_pipeline() {
     let llm_server = MockServer::start().await;
     let tts_server = MockServer::start().await;
 
-    let sse_body = build_anthropic_sse(&[
-        "はい、",
-        "お手伝いします。",
-        "何でも聞いてください！",
-    ]);
+    let sse_body = build_anthropic_sse(&["はい、", "お手伝いします。", "何でも聞いてください！"]);
 
     Mock::given(method("POST"))
         .and(path("/v1/messages"))
@@ -222,13 +214,7 @@ async fn test_streaming_incremental_chunks() {
     let tts_server = MockServer::start().await;
 
     // Simulate token-by-token streaming that builds up sentences
-    let sse_body = build_openai_sse(&[
-        "Rust",
-        "は",
-        "素晴らしい。",
-        "安全",
-        "で高速です！",
-    ]);
+    let sse_body = build_openai_sse(&["Rust", "は", "素晴らしい。", "安全", "で高速です！"]);
 
     Mock::given(method("POST"))
         .and(path("/v1/chat/completions"))
@@ -279,9 +265,7 @@ async fn test_streaming_multi_sentence_in_single_delta() {
     let tts_server = MockServer::start().await;
 
     // Single delta contains multiple sentences — tests ordering correctness
-    let sse_body = build_openai_sse(&[
-        "最初の文。二番目の文。三番目の文。",
-    ]);
+    let sse_body = build_openai_sse(&["最初の文。二番目の文。三番目の文。"]);
 
     Mock::given(method("POST"))
         .and(path("/v1/chat/completions"))
